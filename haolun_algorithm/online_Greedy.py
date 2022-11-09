@@ -52,7 +52,7 @@ def online_Greedy(LHS, RHS, W, pvt, T, K, Xopt):
         """
         safe[cur_u] = 0
         last_matched[cur_u] = t
-        weightAlg += W[t][cur_u][cur_v] * pvt[t][cur_v]
+        weightAlg += W[t][cur_u][cur_v] #* pvt[t][cur_v]
         matches[t] = (cur_u, cur_v)
 
         """

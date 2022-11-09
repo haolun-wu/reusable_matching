@@ -31,8 +31,8 @@ def sampleEdge(Xopt, LHS, t, cur_v, p_v, gamma, beta):
         if beta[(cur_u, cur_v)] == 0:
             temp_u = 0
         else:
-            temp_u = gamma * Xopt[t][cur_u][cur_v] / (p_v * beta[(cur_u, cur_v)])
-            # temp_u = Xopt[t][cur_u][cur_v] / p_v
+            # temp_u = gamma * Xopt[t][cur_u][cur_v] / (p_v * beta[(cur_u, cur_v)])
+            temp_u = Xopt[t][cur_u][cur_v] / p_v
 
         cur_sum += temp_u
         if r <= cur_sum:

@@ -65,7 +65,7 @@ def online_Greedy_control(LHS, RHS, W, pvt, T, K, ideal_allocation, alpha):
         serve_times_cum[cur_u][cur_v] += 1
         safe[cur_u] = 0
         last_matched[cur_u] = t
-        weightAlg += W[t][cur_u][cur_v] * pvt[t][cur_v]
+        weightAlg += W[t][cur_u][cur_v] #* pvt[t][cur_v]
         matches[t] = (cur_u, cur_v)
 
         """

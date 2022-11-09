@@ -28,17 +28,26 @@ Simulate all the needed information
 # Create the 'prob' variable to contain the problem data
 prob = LpProblem("matching", LpMaximize)
 # test the offline optimal
-U, V = 50, 3
-T, K = 10, 2
+U, V = 20, 3
+T, K = 100, 10
 lambd = 0.5
-W = np.array([[[random.uniform(0, 1) for j in range(V)] for i in range(U)] for t in range(T)])
+# W = np.array([[[random.uniform(0, 1) for j in range(V)] for i in range(U)] for t in range(T)])
+"""Use the real value from BI360"""
+tier1 = [0.65, 0.42, 0.17]
+tier2 = [0.63, 0.39, 0.15]
+tier3 = [0.58, 0.35, 0.14]
+tier4 = [0.42, 0.25, 0.11]
+W = [tier1] * 5 + [tier2] * 5 + [tier3] * 5 + [tier4] * 5
+W = np.array([W for t in range(T)])
 pvt = [[1. / V for v in range(V)] for t in range(T)]
 LHS, RHS = range(U), range(V)
+print("W:", W.shape)
 
 """
 Offline optimal
 """
 Xopt, optimal = offline_LP(prob, LHS, RHS, W, pvt, T, K, lambd)
+print("Xopt:", Xopt[:5])
 print("offline weight:", optimal)
 
 
@@ -57,7 +66,7 @@ for t in range(T):
     p_v = pvt[t]
     simulate_cur_v.append(sampleArrival(p_v, RHS))
 
-run = 10
+run = 20
 
 """
 online_ADAP
