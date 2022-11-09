@@ -32,11 +32,10 @@ U, V = 20, 3
 T, K = 100, 10
 lambd = 0.5
 # W = np.array([[[random.uniform(0, 1) for j in range(V)] for i in range(U)] for t in range(T)])
-"""Use the real value from BI360"""
-tier1 = [0.65, 0.42, 0.17]
-tier2 = [0.63, 0.39, 0.15]
-tier3 = [0.58, 0.35, 0.14]
-tier4 = [0.42, 0.25, 0.11]
+tier1 = [8, 6, 4]
+tier2 = [7, 5, 3]
+tier3 = [6, 4, 2]
+tier4 = [5, 3, 1]
 W = [tier1] * 5 + [tier2] * 5 + [tier3] * 5 + [tier4] * 5
 W = np.array([W for t in range(T)])
 pvt = [[1. / V for v in range(V)] for t in range(T)]
