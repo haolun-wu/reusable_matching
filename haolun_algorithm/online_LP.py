@@ -25,58 +25,65 @@ def sampleArrival(pv, RHS):
 
 
 # # Sample Edge
-def sampleEdge(W_curr, safe, Xopt_curr, pvt_curr):
+def sampleEdge(safe, Xopt_curr, pvt_curr):
     safe_index = np.where(safe == 1)[0]
-    W_curr_safe = W_curr[safe_index]
+    # W_curr_safe = W_curr[safe_index]
     # print("W_curr_safe:", W_curr_safe)
     # print("safe_index:", safe_index)
-    prob = Xopt_curr / pvt_curr
-    prob = prob[safe_index]
 
-    index_select = np.arange(len(safe_index))
-
-    if prob.sum() == 0:
-        index = np.random.choice(index_select, 1, p=softmax(prob))[0]
+    if len(safe_index) == 0:
+        return 19
     else:
-        # index = np.random.choice(index_select, 1, p=prob)[0]
-        index = index = np.argmax(prob)
+        prob = Xopt_curr / pvt_curr
+        prob = prob[safe_index]
 
-    # print("prob:", prob.sum())
+        index_select = np.arange(len(safe_index))
 
-    # index = np.argmax(W_curr_safe)
-    # print("index:", index)
+        if prob.sum() == 0:
+            index = np.random.choice(index_select, 1, p=softmax(prob))[0]
+        else:
+            # index = np.random.choice(index_select, 1, p=prob)[0]
+            index = np.argmax(prob)
 
-    return safe_index[index]
+        return safe_index[index]
 
 
-def online_LP(LHS, RHS, W, pvt, T, K, Xopt):
+def online_LP(LHS, RHS, W, pvt, T, K, Xopt, simulate_cur_v):
     # print("Xopt:", Xopt)
     Xopt = np.array(Xopt)
     weightAlg = 0
     matches = dict()
 
-    last_matched = [-K for cur_u in LHS]
+    last_matched_time = [-100 for cur_u in LHS]
+    last_matched_type = [-1 for cur_u in LHS]
     safe = np.array([1 for cur_u in LHS])
 
     for t in range(T):
         p_v = pvt[t]
-        cur_v = sampleArrival(p_v, RHS)
-        cur_u = sampleEdge(W[t][:, cur_v], safe, Xopt[t][:, cur_v], pvt[t][cur_v])
+        cur_v = simulate_cur_v[t]
+        cur_u = sampleEdge(safe, Xopt[t][:, cur_v], pvt[t][cur_v])
 
-        """
-        After choosing an agent, set non-available
-        """
-        safe[cur_u] = 0
-        last_matched[cur_u] = t
-        weightAlg += W[t][cur_u][cur_v] #* pvt[t][cur_v]
-        matches[t] = (cur_u, cur_v)
+        if cur_u != -1:
+            """
+            After choosing an agent, set non-available
+            """
+            safe[cur_u] = 0
+            last_matched_time[cur_u] = t
+            last_matched_type[cur_u] = cur_v
+            weightAlg += W[t][cur_u][cur_v]  # * pvt[t][cur_v]
+            matches[t] = (cur_u, cur_v)
+        else:
+            weightAlg += 0  # * pvt[t][cur_v]
+            matches[t] = (cur_u, cur_v)
 
         """
         Re-available for those occupied after K steps
         """
         unsafe_index = np.where(safe == 0)[0]
-        for i in unsafe_index:
-            if last_matched[i] + K <= t:
-                safe[i] = 1
+        for u in unsafe_index:
+            if last_matched_time[u] + K[last_matched_type[u]] <= t:
+                safe[u] = 1
+                last_matched_time[u] = -100
+                last_matched_type[u] = -1
 
     return matches, weightAlg

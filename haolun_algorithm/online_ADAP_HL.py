@@ -24,23 +24,32 @@ def sampleArrival(pv, RHS):
 
 
 # # Sample Edge
-def sampleEdge(W_curr, safe):
-    safe_index = np.where(safe == 1)[0]
+def sampleEdge(Xopt, LHS, t, cur_v, p_v, safe):
+    r = random.uniform(0, 1)
+    cur_sum = 0
+    for cur_u in LHS:
+        if safe[cur_u] == 0:
+            temp_u = 0
+        else:
+            # temp_u = gamma * Xopt[t][cur_u][cur_v] / (p_v * beta[(cur_u, cur_v)])
+            temp_u = Xopt[t][cur_u][cur_v] / p_v
 
-    if len(safe_index) == 0:
-        return -1
-    else:
-        W_curr_safe = W_curr[safe_index]
-        # print("W_curr_safe:", W_curr_safe)
-        # print("safe_index:", safe_index)
-        index = np.argmax(W_curr_safe)
-        #  print("index:", index)
+        cur_sum += temp_u
+        if r <= cur_sum:
+            return cur_u
 
-        return safe_index[index]
+    return len(LHS) - 1
 
 
-def online_Greedy(LHS, RHS, W, pvt, T, K, simulate_cur_v):
+"""
+SOTA online
+"""
+
+
+# # Matching function
+def online_ADAP(LHS, RHS, W, pvt, T, K, Xopt, simulate_cur_v):
     weightAlg = 0
+    last_matched = dict()
     matches = dict()
 
     last_matched_time = [-100 for cur_u in LHS]
@@ -51,20 +60,21 @@ def online_Greedy(LHS, RHS, W, pvt, T, K, simulate_cur_v):
         p_v = pvt[t]
         # cur_v = sampleArrival(p_v, RHS)
         cur_v = simulate_cur_v[t]
-        cur_u = sampleEdge(W[t][:, cur_v], safe)
+        cur_u = sampleEdge(Xopt, LHS, t, cur_v, p_v[cur_v], safe)
 
-        if cur_u != -1:
-            """
-            After choosing an agent, set non-available
-            """
-            safe[cur_u] = 0
-            last_matched_time[cur_u] = t
-            last_matched_type[cur_u] = cur_v
-            weightAlg += W[t][cur_u][cur_v]  # * pvt[t][cur_v]
-            matches[t] = (cur_u, cur_v)
-        else:
-            weightAlg += 0  # * pvt[t][cur_v]
-            matches[t] = (cur_u, cur_v)
+        # if last_matched[cur_u] + K <= t:
+        #     last_matched[cur_u] = t
+        #     weightAlg += W[t][cur_u][cur_v]
+        #     matches[t] = (cur_u, cur_v)
+
+        """
+        After choosing an agent, set non-available
+        """
+        safe[cur_u] = 0
+        last_matched_time[cur_u] = t
+        last_matched_type[cur_u] = cur_v
+        weightAlg += W[t][cur_u][cur_v]
+        matches[t] = (cur_u, cur_v)
 
         """
         Re-available for those occupied after K steps
@@ -77,10 +87,3 @@ def online_Greedy(LHS, RHS, W, pvt, T, K, simulate_cur_v):
                 last_matched_type[u] = -1
 
     return matches, weightAlg
-
-
-if __name__ == '__main__':
-    RHS = range(3)
-    pv = [0.8, 0.1, 0.1]
-    for i in range(20):
-        print(sampleArrival(pv, RHS))
